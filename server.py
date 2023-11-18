@@ -1,3 +1,5 @@
+import json
+
 from flask import Flask, request, jsonify
 import execjs    
 import urllib.parse
@@ -18,5 +20,33 @@ def generate_request_params():
     }
     return jsonify(response_data)
 
+@app.route('/xhs-getxs', methods=['POST'])
+def xhs_get_xs():
+    data = request.get_json()
+    api = data.get('api')
+    a1 = data.get('a1')
+    data = data.get('data')
+    if data is None:
+        data = ''
+    else:
+        data = json.dumps(data, separators=(',', ':'))
+    ret = execjs.compile(open('xhs_xs.js').read()).call('get_xs', api, data, a1)
+    xs = ret['X-s']
+    xt = str(ret['X-t'])
+    response_data = {
+        "xs": xs,
+        "xt": xt
+    }
+    return jsonify(response_data)
+
+@app.route('/xhs-get-auth', methods=['POST'])
+def xhs_get_auth():
+    data = request.get_json()
+    response_data = {
+        "auth": execjs.compile(open('xhs_auth.js').read()).call('getAuth', data)
+    }
+    return jsonify(response_data)
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8787)
+    app.run(host='0.0.0.0', port=8889)
+
