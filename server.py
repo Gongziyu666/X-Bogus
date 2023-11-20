@@ -1,4 +1,5 @@
 import json
+import ffmpeg
 
 from flask import Flask, request, jsonify
 import execjs    
@@ -46,6 +47,16 @@ def xhs_get_auth():
         "auth": execjs.compile(open('xhs_auth.js').read()).call('getAuth', data)
     }
     return jsonify(response_data)
+
+@app.route('/get-video-info', methods=['POST'])
+def get_video_info():
+    data = request.get_json()
+    path = data.get('path')
+    # 使用ffmpeg.probe来获取视频文件的元数据
+    probe = ffmpeg.probe(path)
+
+    # 将元数据转换为JSON格式
+    return json.dumps(probe, indent=4)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8889)

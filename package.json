@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@ffmpeg/core": "^0.12.4",
+    "@ffmpeg/ffmpeg": "^0.12.7",
     "crypto-js": "^4.2.0",
     "jsdom": "^22.1.0"
   }
