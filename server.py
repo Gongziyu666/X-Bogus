@@ -1,5 +1,5 @@
 import json
-import ffmpeg
+import os.path
 
 from flask import Flask, request, jsonify
 import execjs    
@@ -24,14 +24,10 @@ def generate_request_params():
 @app.route('/xhs-getxs', methods=['POST'])
 def xhs_get_xs():
     data = request.get_json()
-    api = data.get('api')
-    a1 = data.get('a1')
-    data = data.get('data')
-    if data is None:
-        data = ''
-    else:
-        data = json.dumps(data, separators=(',', ':'))
-    ret = execjs.compile(open('xhs_xs.js').read()).call('get_xs', api, data, a1)
+    base_dir = os.path.dirname(__file__)
+    print('xhs-getxs request data: ')
+    print(data)
+    ret = execjs.compile(open(os.path.join(base_dir, 'xhs_xs.js')).read()).call('xsXt', data)
     xs = ret['X-s']
     xt = str(ret['X-t'])
     response_data = {
@@ -42,14 +38,16 @@ def xhs_get_xs():
 
 @app.route('/xhs-get-auth', methods=['POST'])
 def xhs_get_auth():
+    base_dir = os.path.dirname(__file__)
     data = request.get_json()
     response_data = {
-        "auth": execjs.compile(open('xhs_auth.js').read()).call('getAuth', data)
+        "auth": execjs.compile(open(os.path.join(base_dir, 'xhs_auth.js')).read()).call('getAuth', data)
     }
     return jsonify(response_data)
 
 @app.route('/get-video-info', methods=['POST'])
 def get_video_info():
+    import ffmpeg
     data = request.get_json()
     path = data.get('path')
     # 使用ffmpeg.probe来获取视频文件的元数据
@@ -57,6 +55,25 @@ def get_video_info():
 
     # 将元数据转换为JSON格式
     return json.dumps(probe, indent=4)
+
+@app.route('/xhs-getxst', methods=['POST'])
+def xhs_get_xst():
+    data = request.get_json()
+    api = data.get('api')
+    a1 = data.get('a1')
+    data = data.get('data')
+    if data is None:
+        data = ''
+    else:
+        data = json.dumps(data, separators=(',', ':'))
+    ret = execjs.compile(open('xhs_xst.js').read()).call('get_xs', api, data, a1)
+    xs = ret['X-s']
+    xt = str(ret['X-t'])
+    response_data = {
+        "xs": xs,
+        "xt": xt
+    }
+    return jsonify(response_data)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8889)
